@@ -29,11 +29,22 @@ chatForm.addEventListener('submit', async (e) => {
     showTypingIndicator();
 
     try {
+        // Filter messages to only include the system prompt and user messages
+        const systemPrompt = conversationHistory.find(msg => msg.role === 'system');
+        const userMessages = conversationHistory.filter(msg => msg.role === 'user');
+        
+        const messagesToSend = [];
+        if (systemPrompt) {
+            messagesToSend.push(systemPrompt);
+        }
+        messagesToSend.push(...userMessages);
+
         const completion = await websim.chat.completions.create({
-            messages: conversationHistory.slice(-10), // Keep context manageable
+            messages: messagesToSend.slice(-10), // Keep context manageable, send system + last 9 user messages
         });
 
         const aiResponse = completion.content;
+        // We still push the AI response to the history for display purposes
         conversationHistory.push({ role: 'assistant', content: aiResponse });
 
         hideTypingIndicator();
@@ -85,4 +96,3 @@ function hideTypingIndicator() {
         typingIndicator.remove();
     }
 }
-
